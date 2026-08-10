@@ -10,7 +10,7 @@ function SplitText({ children }: { children: string }) {
     <span className="split-text" aria-label={children}>
       {words.map((word, wordIndex) => {
         const characters = Array.from(word).map((character) => ({ character, index: index++ }));
-        return <span className="split-word" aria-hidden="true" key={`${word}-${wordIndex}`}>{characters.map(({ character, index: charIndex }) => <span className="split-char" key={`${character}-${charIndex}`} style={{ "--char-index": charIndex } as CSSProperties}>{character}</span>)}{wordIndex < words.length - 1 ? " " : ""}</span>;
+        return <span className="split-word" aria-hidden="true" key={`${word}-${wordIndex}`}>{characters.map(({ character, index: charIndex }) => <span className="split-char" key={`${character}-${charIndex}`} style={{ "--char-index": charIndex } as CSSProperties}>{character}</span>)}</span>;
       })}
     </span>
   );
