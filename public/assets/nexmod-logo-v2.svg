@@ -1,9 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 160" role="img" aria-label="NEXMOD Modular Development. Redefined">
   <g transform="translate(420 12) scale(.44)">
     <path d="M0 0H110V78L78 110H0Z" fill="#FFFFFF"/>
-    <path d="M142 0H252V110H174L142 78Z" fill="#149BFF"/>
-    <path d="M0 142H78L110 174V252H0Z" fill="#00A878"/>
+    <path d="M142 0H252V110H174L142 78Z" fill="#FFFFFF"/>
+    <path d="M0 142H78L110 174V252H0Z" fill="#FFFFFF"/>
     <path d="M174 142H252V252H142V174Z" fill="#FFFFFF"/>
+    <path d="M72 110l38-38v12l-26 26z" fill="#149BFF"/><path d="M142 72l38 38h-12l-26-26z" fill="#149BFF"/>
+    <path d="M72 142l38 38v-12l-26-26z" fill="#00A878"/><path d="M142 180l38-38h-12l-26 26z" fill="#00A878"/>
   </g>
   <text x="4" y="86" fill="#FFFFFF" font-family="Inter, Arial, sans-serif" font-size="88" font-weight="700" letter-spacing="7">NEXM</text>
   <text x="538" y="86" fill="#FFFFFF" font-family="Inter, Arial, sans-serif" font-size="88" font-weight="700" letter-spacing="7">D</text>
