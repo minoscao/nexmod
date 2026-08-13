@@ -2,8 +2,15 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "NEXMOD | Modular Buildings for Australian Projects",
-  description: "Integrated modular design, engineering, manufacturing and project delivery for Australian building projects.",
+  metadataBase: new URL("https://nexmod-modular-australia.minos-cao.chatgpt.site"),
+  title: "NEXMOD | Modular Development. Redefined.",
+  description: "Complete room-scale modular buildings designed, engineered and delivered as one connected system for Australian projects.",
+  openGraph: {
+    title: "NEXMOD | Modular Development. Redefined.",
+    description: "Complete room-scale modular buildings designed, engineered and delivered as one connected system for Australian projects.",
+    images: [{ url: "/og.png", width: 1536, height: 1024, alt: "NEXMOD Modular Development. Redefined." }],
+  },
+  twitter: { card: "summary_large_image", images: ["/og.png"] },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
