@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { CSSProperties, FormEvent } from "react";
 
 const capabilities = [
@@ -9,7 +9,9 @@ const capabilities = [
   { number: "03", title: "Procurement", copy: "Supply, manufacturing and construction decisions coordinated early to protect programme certainty and quality.", image: "capability-procurement" },
 ];
 
-const newsItems = [
+type NewsItem = { id?: number; date?: string; publishedAt?: string; category: string; title: string; summary?: string };
+
+const defaultNews: NewsItem[] = [
   { date: "August 2026", category: "Project update", title: "A new South Melbourne modular living project enters design development." },
   { date: "July 2026", category: "Perspective", title: "Why room-scale modular delivery needs early procurement thinking." },
   { date: "June 2026", category: "Company news", title: "NEXMOD expands its international delivery network across Melbourne and Shenzhen." },
@@ -34,6 +36,12 @@ function SectionLabel({ children }: { children: string }) { return <p className=
 export default function SiteExperience() {
   const [status, setStatus] = useState("");
   const [hasError, setHasError] = useState(false);
+  const [newsItems, setNewsItems] = useState<NewsItem[]>(defaultNews);
+  useEffect(() => {
+    fetch("/api/news").then((response) => response.ok ? response.json() : null).then((data) => {
+      if (data?.items?.length) setNewsItems(data.items);
+    }).catch(() => undefined);
+  }, []);
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -72,8 +80,8 @@ export default function SiteExperience() {
       <section id="capability" className="capability-section section-pad" aria-labelledby="capability-title">
         <div className="section-heading reveal"><SectionLabel>Capability</SectionLabel><h2 id="capability-title"><SplitText>Two connected hubs. One delivery system.</SplitText></h2><p>Melbourne directs Australian project outcomes. Shenzhen connects product development, sourcing and delivery intelligence.</p></div>
         <div className="capability-layout">
-          <div className="network-map reveal" aria-label="NEXMOD capability network connecting Melbourne, Australia and Shenzhen, China"><div className="map-grid" /><div className="map-route" /><button className="map-pin map-pin-melbourne" type="button"><b>Melbourne</b><span>Australia</span></button><button className="map-pin map-pin-shenzhen" type="button"><b>Shenzhen</b><span>China</span></button><div className="map-key"><span><i className="map-key-teal" /> Project leadership</span><span><i className="map-key-blue" /> Product & supply</span></div></div>
-          <div className="capability-list">{capabilities.map((item) => <article className={`capability-card ${item.image} reveal`} key={item.number}><div className="capability-card-media" /><div className="capability-card-content"><span>{item.number}</span><h3>{item.title}</h3><p>{item.copy}</p><i aria-hidden="true">↗</i></div></article>)}</div>
+          <div className="network-map reveal" aria-label="NEXMOD capability network connecting Melbourne, Australia and Shenzhen, China"><div className="map-grid" /><p className="map-title">Delivery network</p><div className="map-route" /><button className="map-pin map-pin-melbourne" type="button"><b>Melbourne</b><span>Australia / project leadership</span></button><button className="map-pin map-pin-shenzhen" type="button"><b>Shenzhen</b><span>China / product & supply</span></button><div className="map-key"><span><i className="map-key-teal" /> Project leadership</span><span><i className="map-key-blue" /> Product & supply</span></div></div>
+          <div className="capability-list">{capabilities.map((item) => <article className={`capability-card ${item.image} reveal`} key={item.number}><div className="capability-card-media" /><div className="capability-card-content"><span>{item.number}</span><div><h3>{item.title}</h3><p>{item.copy}</p></div><i aria-hidden="true">↗</i></div></article>)}</div>
         </div>
       </section>
 
@@ -82,7 +90,7 @@ export default function SiteExperience() {
         <div className="people-layout"><article className="people-block people-team reveal"><div className="people-block-image"><img src="/assets/interior-learning-space.png" alt="A calm contemporary interior designed as part of a complete modular building" /></div><div><p className="people-kicker">Our team</p><h3>Development people who understand buildings.</h3><p>Our core team bridges project strategy, design, commercial direction and delivery.</p><a className="text-link" href="#contact">Talk to our team</a></div></article><article className="people-block people-partners reveal"><div className="people-block-image"><img src="/assets/manufacturing-module.png" alt="A room-scale building module in a controlled manufacturing setting" /></div><div><p className="people-kicker">Our partners</p><h3>Specialists brought together around the project.</h3><p>We work with architects, consultants, fabricators and suppliers who share a commitment to quality and coordination.</p><a className="text-link" href="#contact">Partner with NEXMOD</a></div></article></div>
       </section>
 
-      <section id="news" className="news section-pad" aria-labelledby="news-title"><div className="section-heading reveal"><SectionLabel>News</SectionLabel><h2 id="news-title"><SplitText>What we are building, thinking and learning.</SplitText></h2></div><div className="news-list">{newsItems.map((item, index) => <article className="news-item reveal" key={item.title}><span>{String(index + 1).padStart(2, "0")}</span><p>{item.date} / {item.category}</p><h3>{item.title}</h3><a href="#contact" aria-label={`Read ${item.title}`}>↗</a></article>)}</div></section>
+      <section id="news" className="news section-pad" aria-labelledby="news-title"><div className="section-heading reveal"><SectionLabel>News</SectionLabel><h2 id="news-title"><SplitText>What we are building, thinking and learning.</SplitText></h2></div><div className="news-list">{newsItems.map((item, index) => <article className="news-item reveal" key={item.id ?? item.title}><span>{String(index + 1).padStart(2, "0")}</span><p>{item.publishedAt ?? item.date} / {item.category}</p><div><h3>{item.title}</h3>{item.summary ? <small>{item.summary}</small> : null}</div><a href="#contact" aria-label={`Read ${item.title}`}>↗</a></article>)}</div><a className="news-admin-link" href="/admin">News administration</a></section>
 
       <section id="projects" className="projects section-pad" aria-labelledby="projects-title"><div className="section-heading reveal"><SectionLabel>Projects</SectionLabel><h2 id="projects-title"><SplitText>Made for their place. Designed to perform.</SplitText></h2></div><div className="project-grid">{projects.map((project) => <article className={`project-card ${project.className} reveal`} key={project.title}><img src={project.image} alt="" /><div className="project-card-overlay" /><div className="project-card-content"><p>{project.place}</p><h3>{project.title}</h3><span>{project.copy}</span><a className="text-link" href="#contact">Project enquiry</a></div></article>)}</div></section>
 
