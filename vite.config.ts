@@ -3,8 +3,13 @@ import { defineConfig } from "vite";
 import hostingConfig from "./.openai/hosting.json";
 import { sites } from "./build/sites-vite-plugin";
 
-const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
-  "00000000-0000-4000-8000-000000000000";
+// This is the production D1 database used by the NEXMOD news admin.
+// Keeping the binding here ensures the generated Wrangler configuration is
+// deployable from GitHub/Cloudflare as well as through the local preview.
+const NEXMOD_NEWS_DATABASE = {
+  name: "nexmod-news",
+  id: "c287b4da-19ee-4b91-9b75-bcd4334dddde",
+};
 
 const { d1, r2 } = hostingConfig;
 
@@ -14,12 +19,16 @@ const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
 const localBindingConfig = {
   main: "./worker/index.ts",
   compatibility_flags: ["nodejs_compat"],
+  vars: {
+    ADMIN_USERNAME: "admin",
+    ADMIN_PASSWORD: "admin",
+  },
   d1_databases: d1
     ? [
         {
           binding: d1,
-          database_name: "site-creator-d1",
-          database_id: SITE_CREATOR_PLACEHOLDER_DATABASE_ID,
+          database_name: NEXMOD_NEWS_DATABASE.name,
+          database_id: NEXMOD_NEWS_DATABASE.id,
         },
       ]
     : [],
