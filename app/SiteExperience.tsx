@@ -59,7 +59,7 @@ export default function SiteExperience() {
       const travel = Math.max(scene.offsetHeight - window.innerHeight * .38, 1);
       const progress = Math.min(1, Math.max(0, (window.innerHeight * .12 - bounds.top) / travel));
       cards.forEach((card, index) => {
-        const entry = Math.min(1, Math.max(0, (progress - index * .18) / .38));
+        const entry = Math.min(1, Math.max(0, (progress - index * .11) / .22));
         card.style.setProperty("--entry-progress", entry.toFixed(3));
         card.style.setProperty("--entry-y", `${Math.round((1 - entry) * offsets[index])}px`);
       });
