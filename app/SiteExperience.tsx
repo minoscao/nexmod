@@ -35,6 +35,7 @@ export default function SiteExperience() {
   const [isNewsPaused, setIsNewsPaused] = useState(false);
   const newsViewport = useRef<HTMLDivElement>(null);
   const capabilityScene = useRef<HTMLDivElement>(null);
+  const peopleScene = useRef<HTMLElement>(null);
 
   useEffect(() => {
     fetch("/api/news").then((response) => response.ok ? response.json() : null).then((data) => {
@@ -46,7 +47,7 @@ export default function SiteExperience() {
     const scene = capabilityScene.current;
     if (!scene) return undefined;
     const cards = Array.from(scene.querySelectorAll<HTMLElement>(".capability-scroll-card"));
-    const offsets = [170, 245, 320];
+    const offsets = [260, 340, 420];
     let frame = 0;
     const update = () => {
       frame = 0;
@@ -58,9 +59,41 @@ export default function SiteExperience() {
       const travel = Math.max(scene.offsetHeight - window.innerHeight * .38, 1);
       const progress = Math.min(1, Math.max(0, (window.innerHeight * .12 - bounds.top) / travel));
       cards.forEach((card, index) => {
-        const entry = Math.min(1, Math.max(0, (progress - index * .13) / .42));
+        const entry = Math.min(1, Math.max(0, (progress - index * .18) / .38));
         card.style.setProperty("--entry-progress", entry.toFixed(3));
         card.style.setProperty("--entry-y", `${Math.round((1 - entry) * offsets[index])}px`);
+      });
+    };
+    const onScroll = () => { if (!frame) frame = window.requestAnimationFrame(update); };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); if (frame) window.cancelAnimationFrame(frame); };
+  }, []);
+
+  useEffect(() => {
+    const scene = peopleScene.current;
+    if (!scene) return undefined;
+    const cards = Array.from(scene.querySelectorAll<HTMLElement>(".people-scroll-card"));
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      if (window.innerWidth <= 980 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        scene.style.removeProperty("--people-grid-opacity");
+        scene.style.removeProperty("--people-wash-opacity");
+        cards.forEach((card) => { card.style.removeProperty("--people-entry"); card.style.removeProperty("--people-x"); card.style.removeProperty("--people-y"); });
+        return;
+      }
+      const bounds = scene.getBoundingClientRect();
+      const travel = Math.max(scene.offsetHeight - window.innerHeight * .52, 1);
+      const progress = Math.min(1, Math.max(0, (window.innerHeight * .1 - bounds.top) / travel));
+      scene.style.setProperty("--people-grid-opacity", (0.46 - progress * .22).toFixed(3));
+      scene.style.setProperty("--people-wash-opacity", (progress * .62).toFixed(3));
+      cards.forEach((card, index) => {
+        const entry = Math.min(1, Math.max(0, (progress - index * .17) / .5));
+        card.style.setProperty("--people-entry", entry.toFixed(3));
+        card.style.setProperty("--people-x", `${Math.round((1 - entry) * (index ? 86 : -86))}px`);
+        card.style.setProperty("--people-y", `${Math.round((1 - entry) * 86)}px`);
       });
     };
     const onScroll = () => { if (!frame) frame = window.requestAnimationFrame(update); };
@@ -164,9 +197,9 @@ export default function SiteExperience() {
         </div>
       </section>
 
-      <section id="people" className="people section-pad" aria-labelledby="people-title">
+      <section id="people" className="people people-scroll-scene section-pad" aria-labelledby="people-title" ref={peopleScene}>
         <div className="section-heading reveal"><SectionLabel>Our people</SectionLabel><h2 id="people-title"><SplitText>Different expertise. Shared accountability.</SplitText></h2></div>
-        <div className="people-layout"><article className="people-block people-team reveal"><div className="people-block-image"><img src="/assets/interior-learning-space.png" alt="A calm contemporary interior designed as part of a complete modular building" /></div><div><p className="people-kicker">Our team</p><h3>Development people who understand buildings.</h3><p>Our core team bridges project strategy, design, commercial direction and delivery.</p><a className="text-link" href="#contact">Talk to our team</a></div></article><article className="people-block people-partners reveal"><div className="people-block-image"><img src="/assets/manufacturing-module.png" alt="A room-scale building module in a controlled manufacturing setting" /></div><div><p className="people-kicker">Our partners</p><h3>Specialists brought together around the project.</h3><p>We work with architects, consultants, fabricators and suppliers who share a commitment to quality and coordination.</p><a className="text-link" href="#contact">Partner with NEXMOD</a></div></article></div>
+        <div className="people-layout"><article className="people-block people-scroll-card people-team"><div className="people-block-image"><img src="/assets/interior-learning-space.png" alt="A calm contemporary interior designed as part of a complete modular building" /></div><div><p className="people-kicker">Our team</p><h3>Development people who understand buildings.</h3><p>Our core team bridges project strategy, design, commercial direction and delivery.</p><a className="text-link" href="#contact">Talk to our team</a></div></article><article className="people-block people-scroll-card people-partners"><div className="people-block-image"><img src="/assets/manufacturing-module.png" alt="A room-scale building module in a controlled manufacturing setting" /></div><div><p className="people-kicker">Our partners</p><h3>Specialists brought together around the project.</h3><p>We work with architects, consultants, fabricators and suppliers who share a commitment to quality and coordination.</p><a className="text-link" href="#contact">Partner with NEXMOD</a></div></article></div>
       </section>
 
       <section id="news" className="news section-pad" aria-labelledby="news-title"><div className="news-heading reveal"><div className="section-heading"><SectionLabel>News</SectionLabel><h2 id="news-title"><SplitText>What we are building, thinking and learning.</SplitText></h2></div><a className="button news-more" href="/news">More news <span aria-hidden="true">↗</span></a></div><div className="news-carousel reveal" onPointerEnter={() => setIsNewsPaused(true)} onPointerLeave={() => setIsNewsPaused(false)} onFocus={() => setIsNewsPaused(true)} onBlur={() => setIsNewsPaused(false)}><div className="news-viewport" ref={newsViewport} aria-label="Latest NEXMOD news">{newsItems.map((item, index) => <article className="news-slide" data-news-index={index} key={item.id ?? item.title}><img src={item.image} alt="" /><div className="news-slide-overlay" /><div className="news-slide-content"><p>{item.publishedAt ?? item.date} / {item.category}</p><h3>{item.title}</h3>{item.summary ? <span>{item.summary}</span> : null}<a href="/news" aria-label={`Read ${item.title}`}>Read story <i aria-hidden="true">↗</i></a></div></article>)}</div><div className="news-carousel-footer"><p><b>{String(activeNews + 1).padStart(2, "0")}</b> / {String(newsItems.length).padStart(2, "0")}</p><div><button type="button" onClick={() => setActiveNews((activeNews - 1 + newsItems.length) % newsItems.length)} aria-label="Previous news">←</button><button type="button" onClick={() => setActiveNews((activeNews + 1) % newsItems.length)} aria-label="Next news">→</button></div></div></div></section>
