@@ -6,6 +6,7 @@ export type NewsItem = {
   title: string;
   summary?: string;
   image?: string;
+  imageUrl?: string;
 };
 
 export const newsImages = [
@@ -27,5 +28,5 @@ export const defaultNews: NewsItem[] = [
 ];
 
 export function withNewsImages(items: NewsItem[]) {
-  return items.map((item, index) => ({ ...item, image: item.image || newsImages[index % newsImages.length] }));
+  return items.map((item, index) => ({ ...item, image: item.image || item.imageUrl || newsImages[index % newsImages.length] }));
 }
