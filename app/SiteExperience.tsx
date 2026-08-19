@@ -11,7 +11,7 @@ const capabilities = [
 ];
 
 const projects = [
-  { place: "South Melbourne, VIC", title: "South Melbourne living", copy: "A considered urban modular development designed around generous daylight, calm materiality and a compact city footprint.", image: "/assets/hero-modular-building.png", className: "project-south" },
+  { place: "South Melbourne, VIC", title: "South Melbourne living", copy: "A considered urban modular development designed around generous daylight, calm materiality and a compact city footprint.", image: "/assets/south-melbourne-modular-v2.png", className: "project-south" },
   { place: "Western Australia", title: "WA regional accommodation", copy: "A durable, repeatable accommodation solution developed for a remote setting, reliable delivery and long-term performance.", image: "/assets/regional-project.png", className: "project-wa" },
 ];
 

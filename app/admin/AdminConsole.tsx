@@ -25,6 +25,7 @@ export default function AdminConsole() {
   const [items, setItems] = useState<NewsItem[]>([]);
   const [form, setForm] = useState<NewsItem>(emptyForm);
   const [isCreating, setIsCreating] = useState(false);
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [message, setMessage] = useState("");
   const [credentials, setCredentials] = useState({ username: "", password: "" });
@@ -88,6 +89,7 @@ export default function AdminConsole() {
       setForm(emptyForm);
       setSelectedImage(null);
       setIsCreating(false);
+      setIsCreatingCategory(false);
       setMessage("News item saved.");
       await loadNews();
     } catch (error) {
@@ -99,6 +101,7 @@ export default function AdminConsole() {
     setForm(emptyForm);
     setSelectedImage(null);
     setIsCreating(true);
+    setIsCreatingCategory(false);
     setMessage("");
   }
 
@@ -106,6 +109,7 @@ export default function AdminConsole() {
     setForm(item);
     setSelectedImage(null);
     setIsCreating(false);
+    setIsCreatingCategory(false);
     setMessage("");
   }
 
@@ -113,6 +117,7 @@ export default function AdminConsole() {
     setForm(emptyForm);
     setSelectedImage(null);
     setIsCreating(false);
+    setIsCreatingCategory(false);
   }
 
   async function remove(id: number) {
@@ -152,6 +157,7 @@ export default function AdminConsole() {
   }
 
   const editorVisible = isCreating || Boolean(form.id);
+  const categoryOptions = Array.from(new Set(["Company news", "Project update", "Design & innovation", "Development", "Procurement", "Manufacturing", "Perspective", ...items.map((item) => item.category)])).filter(Boolean);
 
   return <main className="admin-shell">
     <header className="admin-header">
@@ -182,7 +188,7 @@ export default function AdminConsole() {
         {editorVisible ? <form className="admin-editor" onSubmit={save}>
           <div className="admin-editor-heading"><p className="admin-form-label">{form.id ? "Edit story" : "Add news"}</p><button className="admin-reset" type="button" onClick={closeEditor}>Close</button></div>
           <label>Title<input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} required /></label>
-          <label>Category<input value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })} required /></label>
+          <label>Category<select value={isCreatingCategory ? "__new__" : form.category} onChange={(event) => { if (event.target.value === "__new__") { setIsCreatingCategory(true); setForm({ ...form, category: "" }); } else { setIsCreatingCategory(false); setForm({ ...form, category: event.target.value }); } }} required><option value="" disabled>Select a category</option>{categoryOptions.map((category) => <option value={category} key={category}>{category}</option>)}<option value="__new__">Create new category...</option></select>{isCreatingCategory ? <input value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })} placeholder="New category name" required /> : null}</label>
           <label>Publication date<input value={form.publishedAt} onChange={(event) => setForm({ ...form, publishedAt: event.target.value })} placeholder="e.g. August 2026" required /></label>
           <label>Summary<textarea rows={5} value={form.summary} onChange={(event) => setForm({ ...form, summary: event.target.value })} /></label>
           <label>Cover image<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => setSelectedImage(event.target.files?.[0] || null)} /><span className="admin-upload-note">JPG, PNG or WebP - up to 3 MB</span></label>
