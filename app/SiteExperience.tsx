@@ -34,11 +34,40 @@ export default function SiteExperience() {
   const [activeNews, setActiveNews] = useState(0);
   const [isNewsPaused, setIsNewsPaused] = useState(false);
   const newsViewport = useRef<HTMLDivElement>(null);
+  const capabilityScene = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch("/api/news").then((response) => response.ok ? response.json() : null).then((data) => {
       if (data?.items?.length) setNewsItems(withNewsImages(data.items));
     }).catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    const scene = capabilityScene.current;
+    if (!scene) return undefined;
+    const cards = Array.from(scene.querySelectorAll<HTMLElement>(".capability-scroll-card"));
+    const offsets = [170, 245, 320];
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      if (window.innerWidth <= 980 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        cards.forEach((card) => { card.style.removeProperty("--entry-progress"); card.style.removeProperty("--entry-y"); });
+        return;
+      }
+      const bounds = scene.getBoundingClientRect();
+      const travel = Math.max(scene.offsetHeight - window.innerHeight * .38, 1);
+      const progress = Math.min(1, Math.max(0, (window.innerHeight * .12 - bounds.top) / travel));
+      cards.forEach((card, index) => {
+        const entry = Math.min(1, Math.max(0, (progress - index * .13) / .42));
+        card.style.setProperty("--entry-progress", entry.toFixed(3));
+        card.style.setProperty("--entry-y", `${Math.round((1 - entry) * offsets[index])}px`);
+      });
+    };
+    const onScroll = () => { if (!frame) frame = window.requestAnimationFrame(update); };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); if (frame) window.cancelAnimationFrame(frame); };
   }, []);
 
   useEffect(() => {
@@ -129,9 +158,9 @@ export default function SiteExperience() {
       </section>
 
       <section id="capability" className="capability-section section-pad" aria-labelledby="capability-title">
-        <div className="capability-layout">
+        <div className="capability-layout" ref={capabilityScene}>
           <div className="network-map reveal" aria-label="NEXMOD capability network connecting Melbourne, Australia and Shenzhen, China"><div className="capability-map-intro"><SectionLabel>Capability</SectionLabel><h2 id="capability-title"><SplitText>Two connected hubs. One delivery system.</SplitText></h2><p>Melbourne directs Australian project outcomes. Shenzhen connects product development, sourcing and delivery intelligence.</p></div><div className="map-grid" /><p className="map-title">Delivery network</p><div className="map-route" /><button className="map-pin map-pin-melbourne" type="button" aria-label="Melbourne, Australia project leadership"><b>Melbourne</b><span>Australia / project leadership</span></button><button className="map-pin map-pin-shenzhen" type="button" aria-label="Shenzhen, China product and supply"><b>Shenzhen</b><span>China / product & supply</span></button><div className="map-key"><span><i className="map-key-teal" /> Project leadership</span><span><i className="map-key-blue" /> Product & supply</span></div></div>
-          <div className="capability-list">{capabilities.map((item) => <article className={`capability-card ${item.image} reveal`} key={item.number}><div className="capability-card-media" /><div className="capability-card-content"><span>{item.number}</span><div><h3>{item.title}</h3><p>{item.copy}</p></div><i aria-hidden="true">↗</i></div></article>)}</div>
+          <div className="capability-list">{capabilities.map((item) => <article className={`capability-card capability-scroll-card ${item.image}`} key={item.number}><div className="capability-card-media" /><div className="capability-card-content"><span>{item.number}</span><div><h3>{item.title}</h3><p>{item.copy}</p></div><i aria-hidden="true">↗</i></div></article>)}</div>
         </div>
       </section>
 
