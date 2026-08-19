@@ -90,10 +90,10 @@ export default function SiteExperience() {
       scene.style.setProperty("--people-grid-opacity", (0.46 - progress * .22).toFixed(3));
       scene.style.setProperty("--people-wash-opacity", (progress * .62).toFixed(3));
       cards.forEach((card, index) => {
-        const entry = Math.min(1, Math.max(0, (progress - index * .17) / .5));
+        const entry = Math.min(1, Math.max(0, progress / .26));
         card.style.setProperty("--people-entry", entry.toFixed(3));
-        card.style.setProperty("--people-x", `${Math.round((1 - entry) * (index ? 86 : -86))}px`);
-        card.style.setProperty("--people-y", `${Math.round((1 - entry) * 86)}px`);
+        card.style.setProperty("--people-x", `${Math.round((1 - entry) * (index ? 70 : -70))}px`);
+        card.style.setProperty("--people-y", `${Math.round((1 - entry) * 110)}px`);
       });
     };
     const onScroll = () => { if (!frame) frame = window.requestAnimationFrame(update); };
