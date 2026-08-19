@@ -29,6 +29,7 @@ function SectionLabel({ children }: { children: string }) { return <p className=
 export default function SiteExperience() {
   const [status, setStatus] = useState("");
   const [hasError, setHasError] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [newsItems, setNewsItems] = useState<NewsItem[]>(defaultNews);
   const [activeNews, setActiveNews] = useState(0);
   const [isNewsPaused, setIsNewsPaused] = useState(false);
@@ -69,7 +70,7 @@ export default function SiteExperience() {
     return () => observer.disconnect();
   }, []);
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const name = String(data.get("name") || "").trim();
@@ -81,8 +82,24 @@ export default function SiteExperience() {
       return;
     }
     setHasError(false);
-    setStatus("Thank you. Your enquiry has been prepared for the NEXMOD team.");
-    event.currentTarget.reset();
+    setIsSubmitting(true);
+    setStatus("Sending your enquiry…");
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, project, organisation: String(data.get("organisation") || "").trim() }),
+      });
+      const result = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(result.error || "We could not send your enquiry just now.");
+      setStatus("Thank you. Your enquiry has been sent to the NEXMOD team.");
+      event.currentTarget.reset();
+    } catch (error) {
+      setHasError(true);
+      setStatus(error instanceof Error ? error.message : "We could not send your enquiry just now.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   function onHeroPointerMove(event: React.PointerEvent<HTMLElement>) {
@@ -127,7 +144,7 @@ export default function SiteExperience() {
 
       <section id="projects" className="projects section-pad" aria-labelledby="projects-title"><div className="section-heading reveal"><SectionLabel>Projects</SectionLabel><h2 id="projects-title"><SplitText>Made for their place. Designed to perform.</SplitText></h2></div><div className="project-grid">{projects.map((project) => <article className={`project-card ${project.className} reveal`} key={project.title}><img src={project.image} alt="" /><div className="project-card-overlay" /><div className="project-card-content"><p>{project.place}</p><h3>{project.title}</h3><span>{project.copy}</span><a className="text-link" href="#contact">Project enquiry</a></div></article>)}</div></section>
 
-      <section id="contact" className="contact section-pad" aria-labelledby="contact-title"><div className="contact-visual reveal"><div className="contact-photo"><img src="/assets/contact-modular-building.png" alt="A completed NEXMOD modular building at dusk" /></div><div className="contact-copy"><SectionLabel>Contact</SectionLabel><h2 id="contact-title"><SplitText>Let's build the right conversation.</SplitText></h2><p>Whether you are evaluating a site, developing a brief or progressing a live project, we would like to hear from you.</p><p className="contact-detail">Melbourne, Australia<br />Shenzhen, China<br />[Email address] / [Australian phone number]</p></div></div><form className="contact-form reveal" noValidate onSubmit={onSubmit}><div className={`field ${hasError ? "is-error" : ""}`}><label htmlFor="name">Name</label><input id="name" name="name" autoComplete="name" required /></div><div className="field"><label htmlFor="organisation">Organisation</label><input id="organisation" name="organisation" autoComplete="organization" /></div><div className={`field ${hasError ? "is-error" : ""}`}><label htmlFor="email">Email</label><input id="email" name="email" type="email" autoComplete="email" required /></div><div className={`field ${hasError ? "is-error" : ""}`}><label htmlFor="project">Tell us about your project</label><textarea id="project" name="project" rows={4} required /></div><p className={`form-status ${hasError ? "is-error" : status ? "is-success" : ""}`} aria-live="polite">{status}</p><button className="button button-primary" type="submit">Send enquiry</button><p className="privacy">By submitting this form, you agree that NEXMOD may use your details to respond to your enquiry in accordance with our Privacy Policy.</p></form></section>
+      <section id="contact" className="contact section-pad" aria-labelledby="contact-title"><div className="contact-visual reveal"><div className="contact-photo"><img src="/assets/contact-modular-building.png" alt="A completed NEXMOD modular building at dusk" /></div><div className="contact-copy"><SectionLabel>Contact</SectionLabel><h2 id="contact-title"><SplitText>Let's build the right conversation.</SplitText></h2><p>Whether you are evaluating a site, developing a brief or progressing a live project, we would like to hear from you.</p><p className="contact-detail">Melbourne, Australia<br />Shenzhen, China<br /><a href="mailto:info@nexmod.com.au">info@nexmod.com.au</a></p></div></div><form className="contact-form reveal" noValidate onSubmit={onSubmit}><div className={`field ${hasError ? "is-error" : ""}`}><label htmlFor="name">Name</label><input id="name" name="name" autoComplete="name" required disabled={isSubmitting} /></div><div className="field"><label htmlFor="organisation">Organisation</label><input id="organisation" name="organisation" autoComplete="organization" disabled={isSubmitting} /></div><div className={`field ${hasError ? "is-error" : ""}`}><label htmlFor="email">Email</label><input id="email" name="email" type="email" autoComplete="email" required disabled={isSubmitting} /></div><div className={`field ${hasError ? "is-error" : ""}`}><label htmlFor="project">Tell us about your project</label><textarea id="project" name="project" rows={4} required disabled={isSubmitting} /></div><p className={`form-status ${hasError ? "is-error" : status ? "is-success" : ""}`} aria-live="polite">{status}</p><button className="button button-primary" type="submit" disabled={isSubmitting}>{isSubmitting ? "Sending…" : "Send enquiry"}</button><p className="privacy">By submitting this form, you agree that NEXMOD may use your details to respond to your enquiry in accordance with our Privacy Policy.</p></form></section>
     </div>
     <footer className="site-footer"><a className="brand-logo footer-logo" href="#top"><img src="/assets/nexmod-primary-vector-reverse.svg" alt="NEXMOD" /></a><p>Modular development. Redefined.</p><div className="footer-actions"><a className="text-link" href="#contact">Contact NEXMOD</a><a className="footer-admin-link" href="/admin">News administration</a></div></footer>
   </main>;
