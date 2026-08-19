@@ -31,31 +31,60 @@ export default function SiteExperience() {
   const [hasError, setHasError] = useState(false);
   const [newsItems, setNewsItems] = useState<NewsItem[]>(defaultNews);
   const [activeNews, setActiveNews] = useState(0);
+  const [isNewsPaused, setIsNewsPaused] = useState(false);
   const newsViewport = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     fetch("/api/news").then((response) => response.ok ? response.json() : null).then((data) => {
       if (data?.items?.length) setNewsItems(withNewsImages(data.items));
     }).catch(() => undefined);
   }, []);
+
   useEffect(() => {
-    if (newsItems.length < 2) return undefined;
+    if (newsItems.length < 2 || isNewsPaused) return undefined;
     const interval = window.setInterval(() => setActiveNews((current) => (current + 1) % newsItems.length), 5200);
     return () => window.clearInterval(interval);
-  }, [newsItems.length]);
+  }, [newsItems.length, isNewsPaused]);
+
   useEffect(() => {
     const viewport = newsViewport.current;
     const card = viewport?.querySelector<HTMLElement>(`[data-news-index="${activeNews}"]`);
     if (viewport && card) viewport.scrollTo({ left: card.offsetLeft - viewport.offsetLeft, behavior: "smooth" });
   }, [activeNews]);
+
+  useEffect(() => {
+    const elements = Array.from(document.querySelectorAll<HTMLElement>(".reveal"));
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      elements.forEach((element) => element.classList.add("is-revealed"));
+      return undefined;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("is-revealed");
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0.14, rootMargin: "0px 0px -8% 0px" });
+    elements.forEach((element) => observer.observe(element));
+    return () => observer.disconnect();
+  }, []);
+
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const name = String(data.get("name") || "").trim();
     const email = String(data.get("email") || "").trim();
     const project = String(data.get("project") || "").trim();
-    if (!name || !email || !project || !/^\S+@\S+\.\S+$/.test(email)) { setHasError(true); setStatus("Please complete the required fields and check your email address."); return; }
-    setHasError(false); setStatus("Thank you. Your enquiry has been prepared for the NEXMOD team."); event.currentTarget.reset();
+    if (!name || !email || !project || !/^\S+@\S+\.\S+$/.test(email)) {
+      setHasError(true);
+      setStatus("Please complete the required fields and check your email address.");
+      return;
+    }
+    setHasError(false);
+    setStatus("Thank you. Your enquiry has been prepared for the NEXMOD team.");
+    event.currentTarget.reset();
   }
+
   function onHeroPointerMove(event: React.PointerEvent<HTMLElement>) {
     const rect = event.currentTarget.getBoundingClientRect();
     event.currentTarget.style.setProperty("--pointer-x", ((event.clientX - rect.left) / rect.width - .5).toFixed(3));
@@ -84,7 +113,7 @@ export default function SiteExperience() {
 
       <section id="capability" className="capability-section section-pad" aria-labelledby="capability-title">
         <div className="capability-layout">
-          <div className="network-map reveal" aria-label="NEXMOD capability network connecting Melbourne, Australia and Shenzhen, China"><div className="capability-map-intro"><SectionLabel>Capability</SectionLabel><h2 id="capability-title"><SplitText>Two connected hubs. One delivery system.</SplitText></h2><p>Melbourne directs Australian project outcomes. Shenzhen connects product development, sourcing and delivery intelligence.</p></div><div className="map-grid" /><p className="map-title">Delivery network</p><div className="map-route" /><button className="map-pin map-pin-melbourne" type="button"><b>Melbourne</b><span>Australia / project leadership</span></button><button className="map-pin map-pin-shenzhen" type="button"><b>Shenzhen</b><span>China / product & supply</span></button><div className="map-key"><span><i className="map-key-teal" /> Project leadership</span><span><i className="map-key-blue" /> Product & supply</span></div></div>
+          <div className="network-map reveal" aria-label="NEXMOD capability network connecting Melbourne, Australia and Shenzhen, China"><div className="capability-map-intro"><SectionLabel>Capability</SectionLabel><h2 id="capability-title"><SplitText>Two connected hubs. One delivery system.</SplitText></h2><p>Melbourne directs Australian project outcomes. Shenzhen connects product development, sourcing and delivery intelligence.</p></div><div className="map-grid" /><p className="map-title">Delivery network</p><div className="map-route" /><button className="map-pin map-pin-melbourne" type="button" aria-label="Melbourne, Australia project leadership"><b>Melbourne</b><span>Australia / project leadership</span></button><button className="map-pin map-pin-shenzhen" type="button" aria-label="Shenzhen, China product and supply"><b>Shenzhen</b><span>China / product & supply</span></button><div className="map-key"><span><i className="map-key-teal" /> Project leadership</span><span><i className="map-key-blue" /> Product & supply</span></div></div>
           <div className="capability-list">{capabilities.map((item) => <article className={`capability-card ${item.image} reveal`} key={item.number}><div className="capability-card-media" /><div className="capability-card-content"><span>{item.number}</span><div><h3>{item.title}</h3><p>{item.copy}</p></div><i aria-hidden="true">↗</i></div></article>)}</div>
         </div>
       </section>
@@ -94,7 +123,7 @@ export default function SiteExperience() {
         <div className="people-layout"><article className="people-block people-team reveal"><div className="people-block-image"><img src="/assets/interior-learning-space.png" alt="A calm contemporary interior designed as part of a complete modular building" /></div><div><p className="people-kicker">Our team</p><h3>Development people who understand buildings.</h3><p>Our core team bridges project strategy, design, commercial direction and delivery.</p><a className="text-link" href="#contact">Talk to our team</a></div></article><article className="people-block people-partners reveal"><div className="people-block-image"><img src="/assets/manufacturing-module.png" alt="A room-scale building module in a controlled manufacturing setting" /></div><div><p className="people-kicker">Our partners</p><h3>Specialists brought together around the project.</h3><p>We work with architects, consultants, fabricators and suppliers who share a commitment to quality and coordination.</p><a className="text-link" href="#contact">Partner with NEXMOD</a></div></article></div>
       </section>
 
-      <section id="news" className="news section-pad" aria-labelledby="news-title"><div className="news-heading reveal"><div className="section-heading"><SectionLabel>News</SectionLabel><h2 id="news-title"><SplitText>What we are building, thinking and learning.</SplitText></h2></div><a className="button news-more" href="/news">More news <span aria-hidden="true">↗</span></a></div><div className="news-carousel reveal"><div className="news-viewport" ref={newsViewport} aria-label="Latest NEXMOD news">{newsItems.map((item, index) => <article className="news-slide" data-news-index={index} key={item.id ?? item.title}><img src={item.image} alt="" /><div className="news-slide-overlay" /><div className="news-slide-content"><p>{item.publishedAt ?? item.date} / {item.category}</p><h3>{item.title}</h3>{item.summary ? <span>{item.summary}</span> : null}<a href="/news" aria-label={`Read ${item.title}`}>Read story <i aria-hidden="true">↗</i></a></div></article>)}</div><div className="news-carousel-footer"><p><b>{String(activeNews + 1).padStart(2, "0")}</b> / {String(newsItems.length).padStart(2, "0")}</p><div><button type="button" onClick={() => setActiveNews((activeNews - 1 + newsItems.length) % newsItems.length)} aria-label="Previous news">←</button><button type="button" onClick={() => setActiveNews((activeNews + 1) % newsItems.length)} aria-label="Next news">→</button></div></div></div></section>
+      <section id="news" className="news section-pad" aria-labelledby="news-title"><div className="news-heading reveal"><div className="section-heading"><SectionLabel>News</SectionLabel><h2 id="news-title"><SplitText>What we are building, thinking and learning.</SplitText></h2></div><a className="button news-more" href="/news">More news <span aria-hidden="true">↗</span></a></div><div className="news-carousel reveal" onPointerEnter={() => setIsNewsPaused(true)} onPointerLeave={() => setIsNewsPaused(false)} onFocus={() => setIsNewsPaused(true)} onBlur={() => setIsNewsPaused(false)}><div className="news-viewport" ref={newsViewport} aria-label="Latest NEXMOD news">{newsItems.map((item, index) => <article className="news-slide" data-news-index={index} key={item.id ?? item.title}><img src={item.image} alt="" /><div className="news-slide-overlay" /><div className="news-slide-content"><p>{item.publishedAt ?? item.date} / {item.category}</p><h3>{item.title}</h3>{item.summary ? <span>{item.summary}</span> : null}<a href="/news" aria-label={`Read ${item.title}`}>Read story <i aria-hidden="true">↗</i></a></div></article>)}</div><div className="news-carousel-footer"><p><b>{String(activeNews + 1).padStart(2, "0")}</b> / {String(newsItems.length).padStart(2, "0")}</p><div><button type="button" onClick={() => setActiveNews((activeNews - 1 + newsItems.length) % newsItems.length)} aria-label="Previous news">←</button><button type="button" onClick={() => setActiveNews((activeNews + 1) % newsItems.length)} aria-label="Next news">→</button></div></div></div></section>
 
       <section id="projects" className="projects section-pad" aria-labelledby="projects-title"><div className="section-heading reveal"><SectionLabel>Projects</SectionLabel><h2 id="projects-title"><SplitText>Made for their place. Designed to perform.</SplitText></h2></div><div className="project-grid">{projects.map((project) => <article className={`project-card ${project.className} reveal`} key={project.title}><img src={project.image} alt="" /><div className="project-card-overlay" /><div className="project-card-content"><p>{project.place}</p><h3>{project.title}</h3><span>{project.copy}</span><a className="text-link" href="#contact">Project enquiry</a></div></article>)}</div></section>
 
